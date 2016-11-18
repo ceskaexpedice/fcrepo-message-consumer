@@ -32,6 +32,10 @@
   <!-- Solr Indexer START-->
   <bean id="solrIndexer" class="org.fcrepo.indexer.solr.SolrIndexer"/>
 
+  <!-- Kramerius indexder -->
+  <bean id="krameriusIndexer" class="org.fcrepo.indexer.kramerius.KrameriusSOLRIndexer"/>
+
+
   <bean class="java.io.File" id="solrConfig">
     <constructor-arg type="String">
       <value>target/test-classes/solr/solr.xml</value>
@@ -56,6 +60,7 @@
         <ref bean="fileSerializer"/>
         <ref bean="sparqlUpdate"/>
         <ref bean="solrIndexer"/>
+        <ref bean="krameriusIndexer"/>
       </set>
     </constructor-arg>
     <constructor-arg name="fedoraUsername" value=""/>

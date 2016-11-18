@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -256,7 +257,6 @@ public class IndexerGroup implements MessageListener {
             while (!Strings.isNullOrEmpty(baseURL) && baseURL.endsWith("/")) {
                 baseURL = baseURL.substring(0, baseURL.length() - 1);
             }
-
             index( new URI(baseURL + id), eventType );
         } catch (final URISyntaxException e) {
             LOGGER.error("Error creating URI", e);
@@ -278,6 +278,10 @@ public class IndexerGroup implements MessageListener {
             memoize(new NamedFieldsRetriever(uri, httpClient, rdfr));
         final Supplier<InputStream> jcrfr =
              memoize(new JcrXmlRetriever(uri, httpClient));
+
+        final Supplier<RELSEXTFields> relsExt =
+                memoize(new RELSEXTRetriever(uri, httpClient));
+
         Boolean indexable = false;
 
         if (!removal) {
@@ -309,6 +313,17 @@ public class IndexerGroup implements MessageListener {
             Object content = EMPTY_CONTENT;
             if (!removal && indexable) {
                 switch (indexer.getIndexerType()) {
+                    case KRAMERIUS_SOLR: 
+                        try  {
+                            content = relsExt.get();
+                            hasContent = true;
+                        } catch (final AbsentTransformPropertyException e) {
+                            LOGGER.error("Failed to retrieve indexable content:"
+                                    + "could not find transform property!");
+                            hasContent = false;
+                        }
+                        break;
+
                     case NAMEDFIELDS:
                         LOGGER.debug(
                                 "Retrieving named fields for: {}, (may be cached) to index to {}...",

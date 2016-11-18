@@ -32,6 +32,11 @@
     <bean id="solrIndexer" class="org.fcrepo.indexer.solr.SolrIndexer">
     <constructor-arg ref="solrServer" />
     </bean>
+  <!--  kramerius indexer  -->	    
+  <bean id="krameriusIndexer" class="org.fcrepo.indexer.kramerius.KrameriusSOLRIndexer">
+    <constructor-arg ref="solrServer" />
+  </bean>
+    
 <!--Standardalone solr Server  -->
   <bean id="solrServer" class="org.apache.solr.client.solrj.impl.HttpSolrServer">
     <constructor-arg index="0" value="http://${fcrepo.host:localhost}:${solrIndexer.port:8983}/solr/" />
@@ -52,12 +57,14 @@
   <bean id="indexerGroup" class="org.fcrepo.indexer.IndexerGroup">
     <constructor-arg name="indexers">
       <set>
+        <ref bean="krameriusIndexer"/>
+      	<!--  
         <ref bean="jcrXmlPersist"/>
         <ref bean="rdfPersist"/>
         <ref bean="fileSerializer"/>
-        <ref bean="sparqlUpdate"/>
+        <ref bean="sparqlUpdate"/> -->
         <!--To enable solr Indexer, please uncomment line below  -->
-<!--         <ref bean="solrIndexer"/> -->
+		<!--   <ref bean="solrIndexer"/> -->
       </set>
     </constructor-arg>
 

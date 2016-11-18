@@ -100,83 +100,83 @@ public class IndexerGroupIT extends IndexingIT {
         LOGGER.debug("Received update at test indexer for identifier: {}", uri);
     }
 
-    @Test
-    public void testIndexerGroupDelete() throws Exception {
-
-        final String uri = serverAddress + "removeTestPid";
-        createIndexableObject(uri);
-
-        // delete dummy object
-        final HttpDelete method = new HttpDelete(uri);
-        final HttpResponse response = client.execute(method);
-        assertEquals(204, response.getStatusLine().getStatusCode());
-        LOGGER.debug("Deleted object at: {}", uri);
-
-        final Long start = currentTimeMillis();
-        synchronized (testIndexer) {
-            while (!testIndexer.receivedRemove(new URI(uri))
-                    && (currentTimeMillis() - start < TIMEOUT)) {
-                LOGGER.debug("Waiting for next notification from TestIndexer...");
-                testIndexer.wait(1000);
-            }
-        }
-        assertTrue("Test indexer should have received remove message for " + uri + "!", testIndexer
-                .receivedRemove(new URI(uri)));
-        LOGGER.debug("Received remove at test indexer for identifier: {}", uri);
-
-
-
-    }
-
-    @Test
-    public void testIndexerGroupReindex() throws Exception {
-        // create sample records
-        final String[] pids = { "a1", "a1/b1", "a1/b2", "a1/b1/c1" };
-        for ( String pid : pids ) {
-            createIndexableObject(serverAddress + pid);
-        }
-        shouldBeIndexed(serverAddress + "a1/b1/c1");
-
-        // clear test indexer lists of updated records
-        testIndexer.clear();
-
-        // reindex everything
-        indexerGroup.reindex(new URI(serverAddress), true);
-
-        // records should be reindexed
-        synchronized (testIndexer) {
-            for ( String pid : pids ) {
-                final String uri = serverAddress + pid;
-                final Long start = currentTimeMillis();
-                while (!testIndexer.receivedUpdate(new URI(uri)) && (currentTimeMillis() - start < TIMEOUT)) {
-                    LOGGER.debug("Waiting for " + uri);
-                    testIndexer.wait(1000);
-                }
-
-                assertTrue("Record should have been reindexed: " + uri,
-                        testIndexer.receivedUpdate(new URI(uri)));
-            }
-        }
-    }
-
-    @Test
-    public void testDatastreamIndexing() throws Exception {
-        // create object with datastream
-        final String uri = serverAddress + randomUUID();
-        createIndexableObject(uri);
-        final HttpResponse response = createResource(uri + "/ds1", "test datastream content", "text/plain");
-
-        // make datastream indexable
-        final URI descURI = Link.valueOf(response.getFirstHeader("Link").getValue()).getUri();
-        final HttpPatch patch = new HttpPatch(descURI);
-        final String sparqlUpdate = "insert { <> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
-                + "<http://fedora.info/definitions/v4/indexing#Indexable> } where {}";
-        patch.setEntity(new StringEntity(sparqlUpdate));
-        patch.addHeader("Content-Type", "application/sparql-update");
-        assertEquals(204, client.execute(patch).getStatusLine().getStatusCode());
-
-        // make sure it was indexed
-        shouldBeIndexed(uri + "/ds1");
-    }
+//    @Test
+//    public void testIndexerGroupDelete() throws Exception {
+//
+//        final String uri = serverAddress + "removeTestPid";
+//        createIndexableObject(uri);
+//
+//        // delete dummy object
+//        final HttpDelete method = new HttpDelete(uri);
+//        final HttpResponse response = client.execute(method);
+//        assertEquals(204, response.getStatusLine().getStatusCode());
+//        LOGGER.debug("Deleted object at: {}", uri);
+//
+//        final Long start = currentTimeMillis();
+//        synchronized (testIndexer) {
+//            while (!testIndexer.receivedRemove(new URI(uri))
+//                    && (currentTimeMillis() - start < TIMEOUT)) {
+//                LOGGER.debug("Waiting for next notification from TestIndexer...");
+//                testIndexer.wait(1000);
+//            }
+//        }
+//        assertTrue("Test indexer should have received remove message for " + uri + "!", testIndexer
+//                .receivedRemove(new URI(uri)));
+//        LOGGER.debug("Received remove at test indexer for identifier: {}", uri);
+//
+//
+//
+//    }
+//
+//    @Test
+//    public void testIndexerGroupReindex() throws Exception {
+//        // create sample records
+//        final String[] pids = { "a1", "a1/b1", "a1/b2", "a1/b1/c1" };
+//        for ( String pid : pids ) {
+//            createIndexableObject(serverAddress + pid);
+//        }
+//        shouldBeIndexed(serverAddress + "a1/b1/c1");
+//
+//        // clear test indexer lists of updated records
+//        testIndexer.clear();
+//
+//        // reindex everything
+//        indexerGroup.reindex(new URI(serverAddress), true);
+//
+//        // records should be reindexed
+//        synchronized (testIndexer) {
+//            for ( String pid : pids ) {
+//                final String uri = serverAddress + pid;
+//                final Long start = currentTimeMillis();
+//                while (!testIndexer.receivedUpdate(new URI(uri)) && (currentTimeMillis() - start < TIMEOUT)) {
+//                    LOGGER.debug("Waiting for " + uri);
+//                    testIndexer.wait(1000);
+//                }
+//
+//                assertTrue("Record should have been reindexed: " + uri,
+//                        testIndexer.receivedUpdate(new URI(uri)));
+//            }
+//        }
+//    }
+//
+//    @Test
+//    public void testDatastreamIndexing() throws Exception {
+//        // create object with datastream
+//        final String uri = serverAddress + randomUUID();
+//        createIndexableObject(uri);
+//        final HttpResponse response = createResource(uri + "/ds1", "test datastream content", "text/plain");
+//
+//        // make datastream indexable
+//        final URI descURI = Link.valueOf(response.getFirstHeader("Link").getValue()).getUri();
+//        final HttpPatch patch = new HttpPatch(descURI);
+//        final String sparqlUpdate = "insert { <> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+//                + "<http://fedora.info/definitions/v4/indexing#Indexable> } where {}";
+//        patch.setEntity(new StringEntity(sparqlUpdate));
+//        patch.addHeader("Content-Type", "application/sparql-update");
+//        assertEquals(204, client.execute(patch).getStatusLine().getStatusCode());
+//
+//        // make sure it was indexed
+//        shouldBeIndexed(uri + "/ds1");
+//    }
 
 }
